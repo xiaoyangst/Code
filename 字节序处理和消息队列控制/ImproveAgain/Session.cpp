@@ -62,10 +62,11 @@ void Session::handle_read(const boost::system::error_code& error, size_t bytes_t
 		return;
 	}
 
+	data_len = ntohs(data_len);
+
 	recv_msg_node_ = std::make_shared<MsgNode>(data_len);
 	socket_.async_receive(boost::asio::buffer(recv_msg_node_->data_, data_len),	// 读完 HEAD_LENGTH 字节才触发读回调
 		std::bind(&Session::HandleReadMsg, shared_from_this(), std::placeholders::_1, std::placeholders::_2));
-
 
 }
 
@@ -93,12 +94,18 @@ void Session::Send(char* msg, int max_len)
 	if (!sendQue_.empty()) {	// 缓冲队列有未处理的数据，后续只加入数据，但不处理，需要等 handle_write 把上次的数据处理完
 		pending = true;
 	}
+	if (sendQue_.size() > MAX_SENDQUE) {	// 超过队列限制大小，直接丢弃
+		std::cout << "uuid = "<< uuid_ << "Exceeding the maximum capacity of the SendQue" << std::endl;
+		return;
+	}
+	max_len = htons(max_len);
 	sendQue_.push(std::make_shared<MsgNode>(msg, max_len));
 	if (pending) {	
 		return;
 	}
 
-	socket_.async_write_some(boost::asio::buffer(msg,max_len),	
+	auto& msgnode = sendQue_.front();
+	socket_.async_write_some(boost::asio::buffer(msgnode->data_, msgnode->total_len_),
 		std::bind(&Session::handle_write, shared_from_this(), std::placeholders::_1));
 }
 
