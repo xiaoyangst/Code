@@ -25,10 +25,9 @@ AsioIOServicePool::~AsioIOServicePool()
 
 boost::asio::io_context& AsioIOServicePool::getIOService()
 {
-	nextIOService_ = nextIOService_ % size_;
-	nextIOService_++;
-
-	return ioServiceVec_[nextIOService_];
+	std::size_t current = nextIOService_;
+	nextIOService_ = (nextIOService_ + 1) % size_;  // 确保不会越界
+	return ioServiceVec_[current];  // 直接返回当前的 ioService
 }
 
 void AsioIOServicePool::Stop()
