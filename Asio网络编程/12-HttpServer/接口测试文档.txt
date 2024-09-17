@@ -1,0 +1,9 @@
+get：127.0.0.1:8080/count
+
+post：127.0.0.1:8080/email
+
+注意：post 请求需要传递 JSON 数据，其内容必须包含一个 email 字段
+
+{
+    "email":"2531577@qq.com"
+}
