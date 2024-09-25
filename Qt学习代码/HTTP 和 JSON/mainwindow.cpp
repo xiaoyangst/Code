@@ -35,6 +35,7 @@ void MainWindow::get_request(){
             ui->message_label->setStyleSheet("color:green");
             emit http_finished(response_);
         }else{
+			qDebug()<<response_->error();   // 打印失败情况
             ui->message_label->setText(tr("Get faile"));
             ui->message_label->setStyleSheet("color:red");
         }
@@ -65,6 +66,7 @@ void MainWindow::post_request(){
             ui->message_label->setStyleSheet("color:green");
             emit http_finished(response_);
         }else{
+			qDebug()<<response_->error();   // 打印失败情况
             ui->message_label->setText(tr("POST faile"));
             ui->message_label->setStyleSheet("color:red");
         }
