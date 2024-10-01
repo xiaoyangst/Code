@@ -21,7 +21,6 @@ class SafeStack
   ~SafeStack() = default;
 
   bool empty();
-  T top();
   void push(T data);
   std::shared_ptr<T> pop();
   void pop(T& data);
@@ -48,12 +47,6 @@ inline int SafeStack<T>::size()
   return m_stack.size();
 }
 
-template<typename T>
-inline T SafeStack<T>::top()
-{
-  std::lock_guard<std::mutex> lg(m_mtx);
-  return m_stack.top();
-}
 
 template<typename T>
 inline void SafeStack<T>::push(T data)
