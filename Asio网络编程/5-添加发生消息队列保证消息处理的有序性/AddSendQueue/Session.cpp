@@ -62,11 +62,11 @@ void Session::handle_write(const boost::system::error_code& error)
 		return;
 	}
 	std::lock_guard<std::mutex> send_lock(mtx_);
+	sendQue_.pop();
 	if (!sendQue_.empty()) {
 		auto& msgNode = sendQue_.front();
 		boost::asio::async_write(socket_, boost::asio::buffer(msgNode->data_, msgNode->max_len_),
 			std::bind(&Session::handle_write, shared_from_this(), std::placeholders::_1));
-		sendQue_.pop();
 	}
 }
 

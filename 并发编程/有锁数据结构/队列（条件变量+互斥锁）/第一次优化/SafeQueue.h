@@ -90,3 +90,15 @@ bool SafeQueue<T>::empty() {
 }
 
 #endif //CONCURRENCESAFE_CONCURRENCE_SAFEQUEUE_H_
+
+
+/*
+
+	data = std::move(*m_queue.front());
+	
+	为什么要加上 * ？
+	
+	因为 data 变量不是 std::shared_ptr<T> 类型，而是 T 类型，* 对 std::shared_ptr<T> 解引用得到 T 类型的对象（值）
+
+
+*/
