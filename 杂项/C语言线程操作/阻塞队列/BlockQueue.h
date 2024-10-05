@@ -2,7 +2,7 @@
 #define CWANG__BLOCKQUEUE_H_
 
 #include "public.h"
-#define N 1024
+#define N 10
 
 typedef int E;
 

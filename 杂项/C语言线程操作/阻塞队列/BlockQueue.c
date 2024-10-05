@@ -15,7 +15,7 @@ BlockQ *blockq_create(void){
 
 
 void blockq_destroy(BlockQ *q){
-  if (!q) {
+  if (q) {
     pthread_mutex_destroy(&q->mutex);
     pthread_cond_destroy(&q->not_full);
     pthread_cond_destroy(&q->not_empty);
@@ -24,36 +24,45 @@ void blockq_destroy(BlockQ *q){
 }
 
 bool blockq_empty(BlockQ *q){
-  return q->size == 0;
+  pthread_mutex_lock(&q->mutex);
+  bool is_empty = (q->size == 0);
+  pthread_mutex_unlock(&q->mutex);
+  return is_empty;
 }
 bool blockq_full(BlockQ *q){
-  return q->size == N;
+  pthread_mutex_lock(&q->mutex);
+  bool is_full = (q->size == N);
+  pthread_mutex_unlock(&q->mutex);
+  return is_full;
 }
 void blockq_push(BlockQ *q, E val){
   pthread_mutex_lock(&q->mutex);
-  while (blockq_full(q)) {  // 满了就会阻塞，解除阻塞再次检查以避免虚假唤醒
-    pthread_cond_wait(&q->not_full, &q->mutex); // 阻塞
+  while (q->size == N) {
+    pthread_cond_wait(&q->not_full, &q->mutex); // 阻塞，直到有空闲空间才解除
   } // 未满
   q->elements[q->rear] = val;
   q->rear = (q->rear + 1) % N;
   q->size++;
-  pthread_cond_broadcast(&q->not_empty);  // 唤醒多个线程
+  pthread_cond_signal(&q->not_empty);
   pthread_mutex_unlock(&q->mutex);
 }
 E blockq_pop(BlockQ *q){
   pthread_mutex_lock(&q->mutex);
-  while (blockq_empty(q)){  // 空的就会阻塞，直到被唤醒
-    pthread_cond_wait(&q->not_empty,&q->mutex); // 阻塞
+  while (q->size == 0){
+    pthread_cond_wait(&q->not_empty,&q->mutex); // 阻塞，直到有数据才解除
   }// 不是空的
   E data = q->elements[q->front];
   q->front = (q->front + 1) % N;
   q->size--;
-  pthread_cond_broadcast(&q->not_full); // 唤醒多个线程
+  pthread_cond_signal(&q->not_full);
   pthread_mutex_unlock(&q->mutex);
   return data;
 }
 E blockq_peek(BlockQ *q){
   pthread_mutex_lock(&q->mutex);
+  while (q->size == 0){
+    pthread_cond_wait(&q->not_empty,&q->mutex);
+  }
   E data = q->elements[q->front];
   pthread_mutex_unlock(&q->mutex);
   return data;

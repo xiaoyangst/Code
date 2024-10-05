@@ -1,59 +1,74 @@
-#include <errno.h>
 #include "public.h"
 #include "BlockQueue.h"
 
-#define THREAD_NUM 10
+typedef struct threadpool{
+  pthread_t* threads;
+  int num;
+  BlockQ* safeQueue;
+}ThreadPool;
 
-BlockQ* data;
-pthread_t threadArray[THREAD_NUM];
-bool is_open = true;
-void* consume(void* num) {
-  while(is_open) {
-    E num = blockq_pop(data);
-    if (num == -1) continue;
-    printf("thread %ld consume = %d\n",pthread_self(),num);
-    sleep(1);
-  }
-}
+// 线程函数
+void* start_routine(void* arg){ // 循环消费，没有可消费对象就阻塞
+  ThreadPool* pool = (ThreadPool*)arg;
 
-void signal_handler(int signal) {
-  blockq_shutdown(data);
-  is_open = false;
-  blockq_destroy(data);
-  for (int i = 0; i < THREAD_NUM; ++i) {
-    pthread_cancel(threadArray[i]);
-  }
-}
-
-int main(int argc, char* argv[]) {
-  // 注册信号处理函数
-  signal(SIGINT, signal_handler);
-
-  data = blockq_create();
-  if (data == NULL) {
-    perror("Failed to create BlockQ");
-    return 1;
-  }
-
-  printf("线程池\n");
-  for (int i = 0; i < THREAD_NUM; ++i) { // 线程池 pop
-    int err = pthread_create(&threadArray[i], NULL, consume, NULL);
-    if (err != 0) {
-      error(1, errno, "pthread_create error");
+  pthread_t tid = pthread_self();
+  for(;;) {
+    int task_id = blockq_pop(pool->safeQueue);
+    if (task_id == -1) {// 退出点
+      printf("0x%lx: exit\n", tid);
+      pthread_exit(NULL);
     }
+    printf("0x%lx: execute task %d\n", tid, task_id);
+    sleep(3);	// 模拟执行任务
+    printf("0x%lx: task %d done\n", tid, task_id);
   }
 
-  printf("主线程\n");
-  for (int i = 0; i < 50; ++i) { // 主线程 push
-    blockq_push(data, i);
+  return NULL;
+}
+
+// 创建线程池
+
+ThreadPool* threads_create(int num){
+  ThreadPool* pool = (ThreadPool*) malloc(sizeof(ThreadPool) * num);
+
+  pool->num = num;
+  pool->safeQueue = blockq_create();
+  pool->threads = (pthread_t*) malloc(sizeof(pthread_t) * num);
+
+  for (int i = 0; i < num; ++i) {
+    pthread_create(&pool->threads[i],NULL,start_routine,pool);
   }
 
-  // 主线程等待各个子线程结束。
-  for (int i = 0; i < THREAD_NUM; ++i) {
-    pthread_join(threadArray[i], NULL);
+  return pool;
+}
+
+void threads_destroy(ThreadPool* pool){
+  blockq_destroy(pool->safeQueue);
+  free(pool->threads);
+  free(pool);
+}
+
+void close_pool(BlockQ* queue){
+  blockq_push(queue,-1);
+}
+
+int main(void){
+
+  ThreadPool* pool = threads_create(10);
+
+  for (int i = 1; i <= 100; i++) {  // 生产
+    blockq_push(pool->safeQueue, i);
   }
 
-  // 清理资源
-  blockq_destroy(data);
+  // 优雅退出
+  for (int i = 0; i < pool->num; ++i) {
+    close_pool(pool->safeQueue);
+  }
+
+  for (int i = 0; i < pool->num; ++i) {
+    pthread_join(pool->threads[i],NULL);
+  }
+
+  threads_destroy(pool);
   return 0;
 }

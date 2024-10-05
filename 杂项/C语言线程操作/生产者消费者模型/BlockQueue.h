@@ -2,7 +2,7 @@
 #define CWANG__BLOCKQUEUE_H_
 
 #include "public.h"
-#define N 1024
+#define N 10
 
 typedef int E;
 
@@ -11,7 +11,6 @@ typedef struct {
   int front;       //  起始下标
   int rear;       // 下一个存储元素的下标
   int size;       // 元素个数
-  bool shutdown;
   pthread_mutex_t mutex;
   pthread_cond_t not_empty;
   pthread_cond_t not_full;
@@ -25,6 +24,5 @@ bool blockq_full(BlockQ *q);
 void blockq_push(BlockQ *q, E val);
 E blockq_pop(BlockQ *q);
 E blockq_peek(BlockQ *q);
-void blockq_shutdown(BlockQ *q);
 
 #endif //CWANG__BLOCKQUEUE_H_
