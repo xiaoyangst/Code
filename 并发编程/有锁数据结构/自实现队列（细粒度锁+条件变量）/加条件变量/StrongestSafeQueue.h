@@ -12,7 +12,6 @@ class StrongestSafeQueue{
     std::shared_ptr<T> data;
     std::unique_ptr<struct Node> next;
   };
-  //using Node = struct Node;
 
  public:
 
