@@ -4,7 +4,7 @@
 
 int parseMessageID(int net_fd){
   char id_buf[4] = {0};
-  ssize_t rn = recv(net_fd,&id_buf, sizeof(id_buf),MESSAGE_WAIT);
+  ssize_t rn = recv(net_fd,&id_buf, sizeof(id_buf),MSG_WAITALL);
   if (rn <= 0) {
     error(1,errno,"recv");
     return -1;
@@ -15,7 +15,7 @@ int parseMessageID(int net_fd){
 }
 int parseMessageHead(int net_fd){
   char head_buf[4] = {0};
-  ssize_t rn = recv(net_fd,&head_buf, sizeof(head_buf),MESSAGE_WAIT);
+  ssize_t rn = recv(net_fd,&head_buf, sizeof(head_buf),MSG_WAITALL);
   if (rn <= 0) {
     error(1,errno,"recv");
     return -1;
@@ -47,7 +47,7 @@ int selectService(int id,int net_fd,int len){
 
 char* getReqFilename(int net_fd,int file_len){
   char* fileName_buf = malloc(sizeof(char ) * file_len);
-  ssize_t recv_len = recv(net_fd,fileName_buf, file_len,MESSAGE_WAIT);
+  ssize_t recv_len = recv(net_fd,fileName_buf, file_len,MSG_WAITALL);
   if (recv_len <= 0) {
     error(1,errno,"recv %d",net_fd);
     exit(-1);
@@ -58,7 +58,7 @@ char* getReqFilename(int net_fd,int file_len){
 }
 
 int openFile(char* filename){
-  int open_fd = open(filename,O_RDONLY);
+  int open_fd = open(filename,O_RDWR);  // 必须是 O_RDWR ，避免 mmap 没有权限
   if (open_fd < 0){
     error(1,errno,"open %d",open_fd);
     // 回复客户端打开文件失败，即不存在该文件
@@ -85,6 +85,7 @@ off_t getReqFileSize(int net_fd,int open_fd){
   }
   return file_size;
 }
+
 
 int sendFile(int net_fd,int open_fd,off_t file_size){
   while (file_size > 0){
@@ -114,62 +115,6 @@ int sendFile(int net_fd,int open_fd,off_t file_size){
   }
   return 1;
 }
-
-/*
-int sendFile(int net_fd, int open_fd, off_t file_size) {
-  // 映射
-  char* mapped = mmap(NULL, file_size, PROT_READ, MAP_SHARED, open_fd, 0);
-  if (mapped == MAP_FAILED) {
-    error(1, errno, "sendFile mmap");
-    close(open_fd);
-    return -1;
-  }
-
-  // 发送
-  ssize_t total_sent = 0;
-  while (total_sent < file_size) {
-    ssize_t sent_bytes = send(net_fd, mapped + total_sent, file_size - total_sent, MSG_NOSIGNAL);
-    if (sent_bytes < 0) {
-      error(1, errno, "send");
-      munmap(mapped, file_size);
-      close(open_fd);
-      return -1;
-    }
-    total_sent += sent_bytes;
-  }
-
-  // 解除映射
-  if (munmap(mapped, file_size) == -1) {
-    error(1, errno, "sendFile munmap");
-    return -1;
-  }
-  close(open_fd);
-
-  return 1;
-}
-*/
-
- /*
-int sendFile(int net_fd, int open_fd, off_t file_size) {
-
-  off_t offset = 0; // 用于跟踪已经发送的字节
-  ssize_t total_sent = 0; // 用于跟踪总共发送的字节数
-
-  while (total_sent < file_size) {
-    ssize_t sent_bytes = sendfile(net_fd, open_fd, &offset, file_size - total_sent);
-    if (sent_bytes < 0) {
-      error(1, errno, "sendFile sendfile");
-      close(open_fd);
-      return -1;
-    }
-    total_sent += sent_bytes;
-    offset += sent_bytes;
-  }
-
-  close(open_fd);
-  return 1;
-}
-*/
 
 int downloadCallback(int net_fd,int file_len){
 
