@@ -4,7 +4,7 @@
 #include <vector>
 #include <stdexcept>
 
-/*
+
 template<typename T>
 class PriorityQueue {
 public:
@@ -67,18 +67,11 @@ private:
     }
 
     void siftUp(std::vector<T> &data, int len, int cur) {     //插入元素，需要上浮
-        while (true) {
-            int parent_index = getParent(cur);
-            int max_index = cur;
-            if (cur > 0 && data[max_index] > data[parent_index]) { // cur 如果 不大于 0，那么就不存在父节点，也没有地方可以上浮了
-                max_index = parent_index;
-            }
-            if (max_index != cur) {
-                std::swap(data[max_index], data[cur]);
-                cur = max_index;
-            } else {
-                break;
-            }
+        while (cur > 0) {
+            int parent = getParent(cur);
+            if (data[cur] <= data[parent]) break;
+            std::swap(data[cur],data[parent]);
+            cur = parent;
         }
     }
 
@@ -97,8 +90,9 @@ private:
 private:
     std::vector<T> data_;
 };
- */
 
+
+/*
 #include <vector>
 #include <stdexcept>
 
@@ -184,6 +178,6 @@ private:
     std::vector<T> data_;
     Compare comp;
 };
-
+*/
 
 #endif //INTERVIEW_PRIORITYQUEUE_H

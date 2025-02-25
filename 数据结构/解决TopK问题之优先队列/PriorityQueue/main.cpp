@@ -4,6 +4,38 @@
 
 #include <cassert>
 
+void testPriorityQueue() {
+    PriorityQueue<int> pq;
+
+    // 测试插入元素
+    pq.push(10);
+    pq.push(20);
+    pq.push(15);
+    pq.push(30);
+    pq.push(40);
+
+    std::cout << "当前堆顶（最大值）: " << pq.top() << " (期望: 40)" << std::endl;
+
+    // 依次删除并打印
+    while (!pq.empty()) {
+        std::cout << "堆顶元素: " << pq.top() << std::endl;
+        pq.pop();
+    }
+
+    // 测试边界情况
+    try {
+        pq.pop();
+    } catch (const std::exception &e) {
+        std::cout << "异常捕获: " << e.what() << " (期望: top from empty queue)" << std::endl;
+    }
+}
+
+int main() {
+    testPriorityQueue();
+    return 0;
+}
+
+/*
 void testMaxHeap() {
     PriorityQueue<int> maxHeap;  // 默认最大堆
     maxHeap.push(10);
@@ -95,3 +127,4 @@ int main() {
     std::cout << "All tests passed!" << std::endl;
     return 0;
 }
+*/
