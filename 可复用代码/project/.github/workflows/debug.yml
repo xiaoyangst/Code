@@ -1,0 +1,35 @@
+name: github_actions_gtest_example-Debug
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Install dependencies
+      run: sudo apt-get update && sudo apt-get install -y cmake g++ libgtest-dev
+
+    - name: Build and install GoogleTest
+      run: |
+        cd /usr/src/googletest
+        sudo cmake -DCMAKE_CXX_STANDARD=17 .
+        sudo make
+        sudo cp lib/*.a /usr/lib/
+        sudo cp lib/*.a /usr/local/lib/
+    - name: Verify gtest installation
+      run: ls -l /usr/lib/libgtest*
+
+    - uses: actions/checkout@v1
+
+    - name: Configure CMake
+      run: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="-Werror" ..
+
+    - name: Build project
+      run: cd build && make && ls -l
+
+    - name: Run Tests
+      run: find build -type f -executable -name "*Test" -exec {} \;
