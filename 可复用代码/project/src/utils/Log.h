@@ -19,6 +19,7 @@
 #include <thread>
 #include "Logger.h"
 
+
 template<typename T>
 std::string to_string_helper(T &&arg) {
 	std::ostringstream oss;
@@ -50,15 +51,6 @@ std::string formatMessage(const std::string &format, Args &&... args) {
 	return oss.str();
 }
 
-std::string levelToString(LOGLEVEL level) {
-	switch (level) {
-		case LOGLEVEL::INFO: return "INFO";
-		case LOGLEVEL::DEBUG: return "DEBUG";
-		case LOGLEVEL::WARN: return "WARN";
-		case LOGLEVEL::FATAL: return "FATAL";
-		default: return "UNKNOWN";
-	}
-}
 
 template<typename... Args>
 void log(LOGLEVEL level, const char* func, const std::string &format, Args &&... args) {
@@ -86,8 +78,18 @@ void log(LOGLEVEL level, const char* func, const std::string &format, Args &&...
 
 	std::string message = formatMessage(format, std::forward<Args>(args)...);
 
+	auto level_str = [level](){
+	  switch (level) {
+		  case LOGLEVEL::INFO: return "INFO";
+		  case LOGLEVEL::DEBUG: return "DEBUG";
+		  case LOGLEVEL::ERROR: return "ERROR";
+		  case LOGLEVEL::FATAL: return "FATAL";
+		  default: return "UNKNOWN";
+	  }
+	}();
+
 	std::ostringstream log_stream;
-	log_stream << "[" << time_stream.str() << "] [" << thread_id << "] [" << levelToString(level) << "] "
+	log_stream << "[" << time_stream.str() << "] [" << thread_id << "] [" << level_str << "] "
 			   << "[" << func << "] " << message;
 
 	Logger::getInstance()->Log(log_stream.str());
@@ -96,7 +98,7 @@ void log(LOGLEVEL level, const char* func, const std::string &format, Args &&...
 
 #define LOG_INFO(format, ...) log(LOGLEVEL::INFO, __PRETTY_FUNCTION__, format, ##__VA_ARGS__)
 #define LOG_DEBUG(format, ...) log(LOGLEVEL::DEBUG, __PRETTY_FUNCTION__, format, ##__VA_ARGS__)
-#define LOG_WARN(format, ...) log(LOGLEVEL::WARN, __PRETTY_FUNCTION__, format, ##__VA_ARGS__)
+#define LOG_ERROR(format, ...) log(LOGLEVEL::ERROR, __PRETTY_FUNCTION__, format, ##__VA_ARGS__)
 #define LOG_FATAL(format, ...) log(LOGLEVEL::FATAL, __PRETTY_FUNCTION__, format, ##__VA_ARGS__)
 
 

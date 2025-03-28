@@ -20,7 +20,7 @@
 enum class LOGLEVEL {
   INFO,
   DEBUG,
-  WARN,
+  ERROR,
   FATAL
 };
 

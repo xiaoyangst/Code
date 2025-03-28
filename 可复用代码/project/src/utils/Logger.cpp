@@ -49,7 +49,7 @@ void Logger::Log(const std::string &log) {
 void Logger::writeLog() {
 	std::string message;
 	while (queue_.pop(message)) {
-		// std::cout << message << std::endl;
+		 std::cout << message << std::endl;
 		log_file_ << message << "\n";
 		log_file_.flush();
 	}
