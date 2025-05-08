@@ -27,19 +27,19 @@ class UnionFind {
 		  return;
 	  }
 
-	  // 找到各自的父节点
-	  auto x_parent = find(x);
-	  auto y_parent = find(y);
+	  // 找到各自的根节点
+	  auto x_root = find(x);
+	  auto y_root = find(y);
 
 	  // 按秩合并
-	  if (y_parent != x_parent) {
-		  if (rank_[x_parent] < rank_[y_parent]) {
-			  parent_[x_parent] = y_parent;
-		  } else if (rank_[y_parent] < rank_[x_parent]) {
-			  parent_[y_parent] = x_parent;
+	  if (x_root != y_root) {
+		  if (rank_[x_root] < rank_[y_root]) {
+			  parent_[x_root] = y_root;
+		  } else if (rank_[y_root] < rank_[x_root]) {
+			  parent_[y_root] = x_root;
 		  } else {
-			  parent_[y_parent] = x_parent;
-			  rank_[x_parent]++;
+			  parent_[y_root] = x_root;
+			  rank_[x_root]++;
 		  }
 	  }
   }
