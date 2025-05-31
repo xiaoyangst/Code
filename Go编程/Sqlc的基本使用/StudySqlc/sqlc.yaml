@@ -1,0 +1,11 @@
+version: "2"
+cloud:
+  project: '01JWK7ZTM5KNT96QC5YK5AY7F9'
+sql:
+  - engine: "mysql" # 数据库引擎
+    queries: "db/query.sql" # SQL 查询文件
+    schema: "db/schema.sql" # 数据库模式文件
+    gen:
+      go:
+        package: "db" # 生成的代码包名
+        out: "db/gen" # 生成的代码输出目录
